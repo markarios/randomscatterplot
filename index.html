@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <script data-require="d3@*" data-semver="3.4.6" src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+  </head>
+
+  <body>
+    <div id="CHART_CONTAINER"></div>
+    
+    <script>
+    
+    function randomData(points) { 
+      var color = d3.scale.category20();
+      var data = [],
+      random = d3.random.normal();
+    
+      for (j = 0; j < points; j++) {
+        data.push({x: random(), y: random(),groupColor:color(j)});
+      }
+      return data;
+    }
+      
+      var margin = {top:20,right:20,bottom:20,left:20}
+      var padding = {top:20,right:20,bottom:20,left:20}
+      var outerHeight = 500, outerWidth = 500;
+      var innerHeight = outerHeight - margin.top - margin.bottom;
+      var innerWidth = outerWidth - margin.left - margin.right;
+      var chartHeight = innerHeight - padding.top - padding.bottom;
+      var chartWidth = innerWidth - padding.left - padding.right;
+
+      var _svg = d3.select("#CHART_CONTAINER")
+        .append("svg")
+        .attr("width",500)
+        .attr("height",500)
+        .append("g")
+        .attr("transform","translate(50,50)");
+
+      var json = randomData(100);
+      
+      var xd = d3.extent(json,function(d){return d.x});
+      console.log(xd);
+      var yd = d3.extent(json,function(d){return d.y});
+      
+      var xScale = d3.scale.linear().domain(xd).range([0,chartWidth]);
+      var yScale = d3.scale.linear().domain(yd).range([chartHeight,0]);
+      
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      var yAxis = d3.svg.axis().scale(yScale).orient("left");
+      
+      var renderXAxis = _svg.append("g")
+        .attr("class","x axis")
+        .call(xAxis)
+        .attr("transform","translate(0,"+ chartHeight + ")");
+      
+      var renderYAxis = _svg.append("g")
+        .attr("class","y axis")
+        .call(yAxis);
+        
+      // visualization
+      
+      _svg.selectAll("circle")
+        .data(json)
+        .enter()
+        .append("circle")
+        .attr("cx",function(d){return xScale(d.x);})
+        .attr("cy",function(d){return yScale(d.y);})
+        .attr("r",4)
+        .attr("fill", function(d){return d.groupColor;})
+        .on("mouseover", function(d,i) { d3.select(this)
+              .transition()
+              .attr("r",8);
+              
+              var cx = d3.select(this).attr("cx");
+              var cy = d3.select(this).attr("cy");
+              
+              cx = Math.floor(cx);
+              cy = Math.floor(cy);
+              
+              var x = Math.floor(100*d.x)/100;
+              var y = Math.floor(100*d.y)/100;
+              
+              var str = "(" + x+ ", " + y +")";
+              
+             _svg.append("text")
+                .attr("id","xy")
+                .transition()
+                .attr("x",cx + 5)
+                .attr("y",cy + 5)
+                .text(str);
+        })
+        .on("mouseout", function() { d3.select(this)
+              .transition()
+              .attr("r",4);
+              
+              _svg.select("text#xy")
+                .remove()
+              
+           
+        });
+      
+        
+    </script>
+  </body>
+</html>
